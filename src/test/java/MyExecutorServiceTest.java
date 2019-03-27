@@ -6,8 +6,7 @@ import work_provider.WorkQueueIsFullException;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
 public class MyExecutorServiceTest {
@@ -61,5 +60,46 @@ public class MyExecutorServiceTest {
         assertEquals(2, stack.pop().intValue());
     }
 
+    @Test
+    public void workQueueSizeOneExecutionTest() throws InterruptedException {
+        int poolSize = 3;
+        int workQueueSize = 1;
+        MyExecutorService myExecutorService = MyExecutors.newFixedThreadPool(poolSize, workQueueSize);
 
+        Stack<Integer> stack = new Stack<>();
+        myExecutorService.execute(() -> stack.push(1));
+        Thread.sleep(1000);
+        assertFalse(stack.empty());
+    }
+
+    @Test
+    public void poolSizeOneExecutionTest() throws InterruptedException {
+        int poolSize = 1;
+        int workQueueSize = 20;
+        MyExecutorService myExecutorService = MyExecutors.newFixedThreadPool(poolSize, workQueueSize);
+
+        Stack<Integer> stack = new Stack<>();
+        for (int i = 0; i < 20; i++) {
+            myExecutorService.execute(() -> stack.push(1));
+        }
+        Thread.sleep(1000);
+        assertEquals(20, stack.size());
+    }
+
+    @Test
+    public void correctInterruptionTest() {
+        int poolSize = 15;
+        int workQueueSize = 15;
+        MyExecutorService myExecutorService = MyExecutors.newFixedThreadPool(poolSize, workQueueSize);
+        for (int i = 0; i < workQueueSize; i++) {
+            if (i % 2 == 0) {
+                myExecutorService.execute(() -> { while (true) ; });
+            } else {
+                myExecutorService.execute(() -> {});
+            }
+        }
+
+        myExecutorService.shutdownNow();
+        assert true; // no exceptions
+    }
 }
