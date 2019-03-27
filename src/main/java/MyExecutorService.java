@@ -1,3 +1,5 @@
+import work_provider.WorkQueueIsFullException;
+
 public interface MyExecutorService {
 
     /**

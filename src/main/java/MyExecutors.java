@@ -1,7 +1,7 @@
 public class MyExecutors {
 
     /**
-     * Creates a new ThreadPool with the given initial number of threads and work queue size
+     * Creates a new thread_pool.ThreadPool with the given initial number of threads and work queue size
      *
      * @param poolSize the number of threads to keep in the pool, even
      *        if they are idle
@@ -10,7 +10,7 @@ public class MyExecutors {
      *        tasks submitted by the {@code execute} method.
      */
     public static MyExecutorService newFixedThreadPool(int poolSize, int workQueueSize) {
-        return null;
+        return new MyExecutorServiceImpl(poolSize, workQueueSize);
     }
 
     public static MyExecutorService newFixedThreadPool(int poolSize) {

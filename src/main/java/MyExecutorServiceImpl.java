@@ -1,12 +1,18 @@
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import thread_pool.ThreadPool;
+import thread_pool.ThreadPoolImpl;
+import work_provider.WorkProvider;
+import work_provider.WorkProviderImpl;
+import work_provider.WorkQueueIsFullException;
 
 public class MyExecutorServiceImpl implements MyExecutorService {
 
-    private Queue<Runnable> commands;
+    private final ThreadPool threadPool;
+    private final WorkProvider workProvider;
 
-    public MyExecutorServiceImpl(int poolSize) {
-        this.commands = new ConcurrentLinkedQueue<Runnable>();
+    public MyExecutorServiceImpl(int poolSize, int workQueueSize) {
+        workProvider = new WorkProviderImpl(workQueueSize);
+        threadPool = new ThreadPoolImpl(poolSize, workProvider);
+        threadPool.fill();
     }
 
     /**
@@ -14,16 +20,18 @@ public class MyExecutorServiceImpl implements MyExecutorService {
      *
      * @param command the runnable task
      * @throws WorkQueueIsFullException if this task cannot be accepted for execution due
-     *                                  to workQueue is full
+     *                                  to jobQueue is full
      */
-    public void execute(Runnable command) {
-
+    public void execute(Runnable command) throws WorkQueueIsFullException {
+        workProvider.addJob(command);
     }
 
     /**
      * Attempts to stop all actively executing tasks.
      */
     public void shutdownNow() {
-
+        threadPool.stopAllThreads();
+        workProvider.removeAllJobs();
+        threadPool.fill();
     }
 }
