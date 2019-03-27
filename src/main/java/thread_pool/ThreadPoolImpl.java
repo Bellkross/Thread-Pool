@@ -19,7 +19,9 @@ public class ThreadPoolImpl implements ThreadPool {
 
     public void fill() {
         for (int i = 0; i < capacity; i++) {
-            threads.add(new ThreadWorker(workProvider));
+            ThreadWorker worker = new ThreadWorker(workProvider);
+            threads.add(worker);
+            worker.start();
         }
     }
 
