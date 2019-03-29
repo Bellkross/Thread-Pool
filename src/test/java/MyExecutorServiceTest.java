@@ -5,6 +5,7 @@ import work_provider.WorkQueueIsFullException;
 
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.*;
 
@@ -93,13 +94,50 @@ public class MyExecutorServiceTest {
         MyExecutorService myExecutorService = MyExecutors.newFixedThreadPool(poolSize, workQueueSize);
         for (int i = 0; i < workQueueSize; i++) {
             if (i % 2 == 0) {
-                myExecutorService.execute(() -> { while (true) ; });
+                myExecutorService.execute(() -> {
+                    while (true) ;
+                });
             } else {
-                myExecutorService.execute(() -> {});
+                myExecutorService.execute(() -> {
+                });
             }
         }
 
         myExecutorService.shutdownNow();
         assert true; // no exceptions
+    }
+
+    @Test
+    public void workAfterFullQueueExceptionTest() {
+        int poolSize = 2;
+        int workQueueSize = 2;
+        MyExecutorService myExecutorService = MyExecutors.newFixedThreadPool(poolSize, workQueueSize);
+
+        AtomicLong atomicLong = new AtomicLong(0);
+        try {
+            for (int i = 0; i < workQueueSize + 1; i++) {
+                myExecutorService.execute(() -> {
+                    while (true) {
+                        atomicLong.getAndAdd(1);
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException e) {
+                            assert false;
+                        }
+                    }
+                });
+            }
+        } catch (WorkQueueIsFullException e) {
+            // no action
+        }
+
+        long beforeDelay = atomicLong.get();
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e1) {
+            assert false;
+        }
+        long afterDelay = atomicLong.get();
+        assertNotEquals(beforeDelay, afterDelay);
     }
 }
