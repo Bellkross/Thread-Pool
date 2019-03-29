@@ -14,8 +14,8 @@ public class MyExecutorServiceTest {
 
     @Test(expected = WorkQueueIsFullException.class)
     public void fullWorkingQueueExceptionTest() {
-        int poolSize = 15;
-        int workQueueSize = 15;
+        int poolSize = 1;
+        int workQueueSize = 1;
         MyExecutorService myExecutorService = MyExecutors.newFixedThreadPool(poolSize, workQueueSize);
 
         for (int i = 0; i < workQueueSize + 1; i++) {
@@ -118,11 +118,9 @@ public class MyExecutorServiceTest {
             for (int i = 0; i < workQueueSize + 1; i++) {
                 myExecutorService.execute(() -> {
                     while (true) {
-                        atomicLong.getAndAdd(1);
-                        try {
-                            Thread.sleep(1);
-                        } catch (InterruptedException e) {
-                            assert false;
+                        synchronized (atomicLong) {
+                            atomicLong.getAndAdd(1);
+                            atomicLong.notifyAll();
                         }
                     }
                 });
@@ -131,13 +129,13 @@ public class MyExecutorServiceTest {
             // no action
         }
 
-        long beforeDelay = atomicLong.get();
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e1) {
-            assert false;
+        synchronized (atomicLong) {
+            try {
+                atomicLong.wait();
+            } catch (InterruptedException e) {
+                assert false;
+            }
         }
-        long afterDelay = atomicLong.get();
-        assertNotEquals(beforeDelay, afterDelay);
+        assert true;
     }
 }

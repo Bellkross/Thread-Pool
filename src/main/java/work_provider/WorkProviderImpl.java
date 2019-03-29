@@ -14,7 +14,7 @@ public class WorkProviderImpl implements WorkProvider {
     }
 
     public void addJob(final Runnable runnable) throws WorkQueueIsFullException {
-        if (jobQueue.size() >= capacity) {
+        if (isFull()) {
             throw new WorkQueueIsFullException();
         }
         synchronized (jobQueue) {
@@ -39,5 +39,10 @@ public class WorkProviderImpl implements WorkProvider {
     @Override
     public void removeAllJobs() {
         jobQueue.clear();
+    }
+
+    @Override
+    public boolean isFull() {
+        return jobQueue.size() >= capacity;
     }
 }
