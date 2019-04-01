@@ -6,7 +6,7 @@ import java.util.Queue;
 public class WorkProviderImpl implements WorkProvider {
 
     private final Queue<Runnable> jobQueue;
-    private int capacity;
+    private volatile int capacity;
 
     public WorkProviderImpl(final int capacity) {
         jobQueue = new LinkedList<>();
